@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mycalender/screens/timetable_screen.dart';
 import 'screens/login_screen.dart';
-import 'shared_preferences_helper.dart';  // Import SharedPreferencesHelper
+import 'shared_preferences_helper.dart'; // Import SharedPreferencesHelper
 
 void main() {
   runApp(MyApp());
@@ -15,19 +15,50 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: FutureBuilder<bool?>(
-        future: SharedPreferencesHelper.getLoginState(),  // Check login state on app start
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());  // Show loading while checking login state
-          }
-          if (snapshot.hasData && snapshot.data == true) {
-            return TimetableScreen();  // Navigate to HomePage if logged in
-          } else {
-            return LoginScreen();  // Otherwise, show login screen
-          }
-        },
-      ),
+      home: SplashScreen(), // Use SplashScreen for authentication checks
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication(); // Perform authentication check on splash screen load
+  }
+
+  Future<void> _checkAuthentication() async {
+    // Check if a token exists in storage
+    final token = await SharedPreferencesHelper.getToken();
+
+    if (token != null && !_isTokenExpired(token)) {
+      // If a valid token is found, navigate to TimetableScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => TimetableScreen()),
+      );
+    } else {
+      // Otherwise, navigate to LoginScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
+  }
+
+  bool _isTokenExpired(String token) {
+    return false; // Replace with real expiration validation if necessary
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(child: CircularProgressIndicator()), // Loading indicator
     );
   }
 }
